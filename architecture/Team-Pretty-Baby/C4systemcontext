@@ -1,0 +1,25 @@
+flowchart TB
+  student["<b>Student</b><br/>[Person]<br/>4th-year Capstone and Thesis student at SorSU Bulan who has no printer and needs hard copies printed"]:::person
+  staff["<b>Print Shop Staff</b><br/>[Person]<br/>Staff of a partner print shop near campus who reviews requests and prints orders"]:::person
+  admin["<b>Administrator</b><br/>[Person]<br/>Pretty Baby team member who onboards partner shops and watches usage"]:::person
+  pqs["<b>Print Queue System</b><br/>[Software System]<br/>Web app where students upload documents, choose print options, pay, get a queue number and order notifications"]:::system
+  pay["<b>Payment Gateway</b><br/>[External Software System]<br/>Third-party service that processes online payments"]:::ext
+  notif["<b>Notification Service</b><br/>[External Software System]<br/>Third-party service that sends SMS or push notifications"]:::ext
+  student -->|"Submits print requests, pays for orders, tracks the queue"| pqs
+  staff -->|"Reviews requests, updates order status, sets shop availability"| pqs
+  admin -->|"Onboards partner shops, views usage metrics"| pqs
+  pqs -->|"Asks to charge the student for an order"| pay
+  pay -.->|"Reports the payment result"| pqs
+  pqs -->|"Asks to send order status notifications"| notif
+  notif -->|"Delivers order updates to the student<br/>[SMS or push]"| student
+  subgraph KEY["Key"]
+    direction LR
+    k1["Person"]:::person
+    k2["Software System we build"]:::system
+    k3["External System"]:::ext
+    k1 -->|"arrow = what the sender is trying to do"| k2
+    k2 -.->|"dotted = result or callback"| k3
+  end
+  classDef person fill:#08427b,stroke:#052e56,color:#fff
+  classDef system fill:#1168bd,stroke:#0b4884,color:#fff
+  classDef ext fill:#999,stroke:#6b6b6b,color:#fff
