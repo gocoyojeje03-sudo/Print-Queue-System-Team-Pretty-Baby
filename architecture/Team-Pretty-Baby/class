@@ -1,0 +1,148 @@
+classDiagram
+  class User {
+    +UUID id
+    +String fullName
+    +String email
+    +String mobileNumber
+    +String passwordHash
+    +UserRole role
+    +DateTime createdAt
+  }
+  class PrintShop {
+    +UUID id
+    +String name
+    +String address
+    +Time openingTime
+    +Time closingTime
+    +Boolean isAcceptingRequests
+    +SubscriptionStatus subscriptionStatus
+    +DateTime createdAt
+  }
+  class PriceRule {
+    +UUID id
+    +PaperSize paperSize
+    +PaperStock paperStock
+    +ColorMode colorMode
+    +Decimal pricePerPage
+  }
+  class PrintOrder {
+    +UUID id
+    +OrderStatus status
+    +Boolean isExpress
+    +Decimal serviceFee
+    +Decimal estimatedTotal
+    +Date queueDate
+    +Integer queueNumber
+    +String rejectionReason
+    +DateTime createdAt
+    +DateTime reviewedAt
+    +DateTime completedAt
+  }
+  class PrintItem {
+    +UUID id
+    +Integer copies
+    +PaperSize paperSize
+    +PaperStock paperStock
+    +ColorMode colorMode
+    +Boolean isDoubleSided
+    +BindingType binding
+  }
+  class Document {
+    +UUID id
+    +String fileName
+    +String storageKey
+    +String mimeType
+    +Integer sizeBytes
+    +Integer pageCount
+    +DateTime uploadedAt
+  }
+  class Payment {
+    +UUID id
+    +String referenceNo
+    +Decimal amount
+    +PaymentStatus status
+    +DateTime createdAt
+    +DateTime paidAt
+  }
+  class Notification {
+    +UUID id
+    +NotificationType type
+    +String message
+    +DeliveryStatus deliveryStatus
+    +DateTime createdAt
+    +DateTime sentAt
+  }
+  class UserRole {
+    <<enumeration>>
+    STUDENT
+    STAFF
+    ADMIN
+  }
+  class OrderStatus {
+    <<enumeration>>
+    PENDING
+    APPROVED
+    REJECTED
+    QUEUED
+    COMPLETED
+    CANCELLED
+  }
+  class PaymentStatus {
+    <<enumeration>>
+    PENDING
+    PAID
+    FAILED
+  }
+  class SubscriptionStatus {
+    <<enumeration>>
+    TRIAL
+    ACTIVE
+    LAPSED
+  }
+  class DeliveryStatus {
+    <<enumeration>>
+    PENDING
+    SENT
+    FAILED
+  }
+  class NotificationType {
+    <<enumeration>>
+    REQUEST_APPROVED
+    REQUEST_REJECTED
+    PAYMENT_CONFIRMED
+    PAYMENT_FAILED
+    ORDER_COMPLETED
+  }
+  class PaperSize {
+    <<enumeration>>
+    SHORT
+    A4
+    LONG
+  }
+  class PaperStock {
+    <<enumeration>>
+    BOND
+    SPECIAL
+  }
+  class ColorMode {
+    <<enumeration>>
+    BLACK_WHITE
+    COLOR
+  }
+  class BindingType {
+    <<enumeration>>
+    NONE
+    SOFT_BIND
+    HARD_BIND
+  }
+  PrintShop "0..1" -- "0..*" User : employs staff
+  User "1" --> "0..*" PrintOrder : submits
+  User "0..1" --> "0..*" PrintOrder : reviews
+  PrintShop "1" --> "0..*" PrintOrder : receives
+  PrintOrder "1" *-- "1..*" PrintItem : contains
+  PrintItem "0..1" -- "1" Document : prints
+  PrintShop "1" *-- "0..*" PriceRule : sets
+  PrintOrder "1" --> "0..*" Payment : is paid by
+  User "1" --> "0..*" Notification : receives
+  PrintOrder "1" --> "0..*" Notification : triggers
+  note "Key - box = class with typed attributes. Box tagged enumeration = fixed list of allowed values. Number at each line end = multiplicity. Filled diamond = composition. Open arrow = navigable association."
