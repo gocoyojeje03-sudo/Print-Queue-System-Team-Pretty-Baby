@@ -1,0 +1,32 @@
+flowchart TB
+  subgraph SRC["src/"]
+    subgraph UI["Web App container"]
+      PAGES["app/(student), app/(staff), app/(admin)<br/>pages"]
+      COMP["components/<br/>reusable UI"]
+      CLIENT["lib/api-client/<br/>HTTP calls to the API"]
+    end
+    subgraph BE["API container"]
+      ROUTES["app/api/<br/>route handlers and webhooks"]
+      SERV["services/<br/>business rules"]
+      REPO["repositories/<br/>database access"]
+      ADAPT["adapters/<br/>payment, notification, storage"]
+    end
+    DOM["domain/<br/>types, enums, status rules"]
+  end
+  DBP["db/<br/>schema and migrations"]
+  PAGES --> COMP
+  PAGES --> CLIENT
+  COMP --> CLIENT
+  CLIENT --> DOM
+  ROUTES --> SERV
+  ROUTES --> DOM
+  SERV --> REPO
+  SERV --> ADAPT
+  SERV --> DOM
+  REPO --> DOM
+  ADAPT --> DOM
+  REPO --> DBP
+  subgraph KEY["Key"]
+    direction LR
+    k1["package = folder"] -->|"depends on (imports)"| k2["another package"]
+  end
