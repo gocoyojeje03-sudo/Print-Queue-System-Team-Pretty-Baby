@@ -1,0 +1,94 @@
+erDiagram
+  print_shops |o--o{ users : "employs staff"
+  users ||--o{ print_orders : "submits"
+  users |o--o{ print_orders : "reviews"
+  print_shops ||--o{ print_orders : "receives"
+  print_orders ||--|{ print_items : "contains"
+  documents ||--o| print_items : "is printed by"
+  print_shops ||--o{ price_rules : "sets"
+  print_orders ||--o{ payments : "is paid by"
+  users ||--o{ notifications : "receives"
+  print_orders ||--o{ notifications : "triggers"
+  users {
+    uuid id PK
+    string full_name "PII"
+    string email UK "PII"
+    string mobile_number "PII"
+    string password_hash "secret, hashed"
+    string role "enum UserRole"
+    uuid print_shop_id FK "null for students"
+    timestamp created_at
+  }
+  print_shops {
+    uuid id PK
+    string name
+    string address
+    time opening_time
+    time closing_time
+    boolean is_accepting_requests
+    string subscription_status "enum SubscriptionStatus"
+    timestamp created_at
+  }
+  price_rules {
+    uuid id PK
+    uuid print_shop_id FK
+    string paper_size "enum PaperSize"
+    string paper_stock "enum PaperStock"
+    string color_mode "enum ColorMode"
+    decimal price_per_page
+  }
+  print_orders {
+    uuid id PK
+    uuid student_id FK
+    uuid print_shop_id FK
+    uuid reviewed_by FK "null until reviewed"
+    string status "enum OrderStatus"
+    boolean is_express
+    decimal service_fee
+    decimal estimated_total
+    date queue_date "null until QUEUED"
+    integer queue_number "null until QUEUED"
+    string rejection_reason
+    timestamp created_at
+    timestamp reviewed_at
+    timestamp completed_at
+  }
+  print_items {
+    uuid id PK
+    uuid print_order_id FK
+    uuid document_id FK "unique"
+    integer copies
+    string paper_size "enum PaperSize"
+    string paper_stock "enum PaperStock"
+    string color_mode "enum ColorMode"
+    boolean is_double_sided
+    string binding "enum BindingType"
+  }
+  documents {
+    uuid id PK
+    string file_name "PII"
+    string storage_key "points to file content, PII"
+    string mime_type
+    integer size_bytes
+    integer page_count
+    timestamp uploaded_at
+  }
+  payments {
+    uuid id PK
+    uuid print_order_id FK
+    string reference_no "gateway reference, sensitive"
+    decimal amount
+    string status "enum PaymentStatus"
+    timestamp created_at
+    timestamp paid_at
+  }
+  notifications {
+    uuid id PK
+    uuid user_id FK
+    uuid print_order_id FK
+    string type "enum NotificationType"
+    string message
+    string delivery_status "enum DeliveryStatus"
+    timestamp created_at
+    timestamp sent_at
+  }
