@@ -1,0 +1,34 @@
+flowchart TB
+  student["<b>Student</b><br/>[Person]<br/>Submits requests, pays, tracks the queue"]:::person
+  staff["<b>Print Shop Staff</b><br/>[Person]<br/>Reviews requests, prints orders"]:::person
+  admin["<b>Administrator</b><br/>[Person]<br/>Onboards shops, views metrics"]:::person
+  subgraph PQS["Print Queue System [Software System boundary]"]
+    web["<b>Web App</b><br/>[Container: Next.js, React, TypeScript]<br/>Pages for students, shop staff and administrators. Runs in the user's browser"]:::cont
+    api["<b>API</b><br/>[Container: Next.js Route Handlers, Node.js, TypeScript]<br/>Business rules: requests, approval, payment, queue numbers, status changes, notifications"]:::cont
+    db[("<b>Database</b><br/>[Container: PostgreSQL]<br/>Users, shops, price rules, orders, print items, payments, notifications")]:::cont
+    files[("<b>Document Storage</b><br/>[Container: S3-compatible object storage]<br/>Uploaded documents waiting to be printed")]:::cont
+  end
+  pay["<b>Payment Gateway</b><br/>[External Software System]<br/>Third-party online payments"]:::ext
+  notif["<b>Notification Service</b><br/>[External Software System]<br/>Third-party SMS or push sender"]:::ext
+  student -->|"Submits requests, pays, tracks queue<br/>[HTTPS]"| web
+  staff -->|"Reviews requests, updates status<br/>[HTTPS]"| web
+  admin -->|"Onboards shops, views metrics<br/>[HTTPS]"| web
+  web -->|"Reads and changes requests, payments, queue and shops<br/>[HTTPS, JSON REST]"| api
+  api -->|"Reads and writes records<br/>[SQL over TLS]"| db
+  api -->|"Stores and fetches documents<br/>[HTTPS, S3 API]"| files
+  api -->|"Asks to charge the student<br/>[HTTPS, JSON]"| pay
+  pay -.->|"Reports payment result<br/>[HTTPS webhook]"| api
+  api -->|"Asks to send status notifications (async)<br/>[HTTPS, JSON]"| notif
+  notif -->|"Delivers order updates to the student<br/>[SMS or push]"| student
+  subgraph KEY["Key"]
+    direction LR
+    k1["Person"]:::person
+    k2["Container [technology]"]:::cont
+    k4[("Data store container")]:::cont
+    k3["External System"]:::ext
+    k1 -->|"arrow = intent [protocol]"| k2
+    k2 -.->|"dotted = callback"| k3
+  end
+  classDef person fill:#08427b,stroke:#052e56,color:#fff
+  classDef cont fill:#438dd5,stroke:#2e6295,color:#fff
+  classDef ext fill:#999,stroke:#6b6b6b,color:#fff
