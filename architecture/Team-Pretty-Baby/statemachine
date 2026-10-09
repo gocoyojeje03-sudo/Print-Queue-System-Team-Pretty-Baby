@@ -1,0 +1,16 @@
+stateDiagram-v2
+  [*] --> PENDING : student submits request
+  PENDING --> APPROVED : staff approves request
+  PENDING --> REJECTED : staff rejects request
+  PENDING --> CANCELLED : student cancels request
+  APPROVED --> QUEUED : payment confirmed
+  APPROVED --> CANCELLED : student cancels request
+  QUEUED --> COMPLETED : staff marks order completed
+  COMPLETED --> [*]
+  REJECTED --> [*]
+  CANCELLED --> [*]
+  note right of QUEUED
+    Key - filled dot = initial state,
+    dot in ring = final state,
+    arrow label = triggering event
+  end note
