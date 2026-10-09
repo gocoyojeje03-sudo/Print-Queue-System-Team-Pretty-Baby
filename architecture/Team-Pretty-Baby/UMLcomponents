@@ -1,0 +1,50 @@
+flowchart LR
+  WEB["Web App container"]:::ext
+  PAYX["Payment Gateway"]:::ext
+  NOTX["Notification Service"]:::ext
+  subgraph API["API container"]
+    ROUTES["<b>«component» Route Handlers</b><br/>provides: REST API, Payment webhook<br/>requires: IAuthService, IOrderService, IPaymentService, IShopService, IMetricsService"]
+    AUTH["<b>«component» AuthService</b><br/>provides: IAuthService<br/>requires: IUserRepository"]
+    ORD["<b>«component» OrderService</b><br/>provides: IOrderService<br/>requires: IOrderRepository, IShopRepository, IFileStore, INotificationService"]
+    PAYS["<b>«component» PaymentService</b><br/>provides: IPaymentService<br/>requires: IPaymentRepository, IOrderRepository, IQueueService, IPaymentGateway, INotificationService"]
+    QUE["<b>«component» QueueService</b><br/>provides: IQueueService<br/>requires: IOrderRepository"]
+    SHOP["<b>«component» ShopService</b><br/>provides: IShopService<br/>requires: IShopRepository, IUserRepository"]
+    MET["<b>«component» MetricsService</b><br/>provides: IMetricsService<br/>requires: IOrderRepository, IShopRepository"]
+    NOT["<b>«component» NotificationService</b><br/>provides: INotificationService<br/>requires: INotificationRepository, IUserRepository, INotificationSender"]
+    REPOS["<b>«component» Repositories</b><br/>provides: IUserRepository, IOrderRepository, IShopRepository, IPaymentRepository, INotificationRepository<br/>requires: SQL database"]
+    PAYA["<b>«component» PaymentGatewayAdapter</b><br/>provides: IPaymentGateway<br/>requires: gateway HTTPS API"]
+    NOTA["<b>«component» NotificationAdapter</b><br/>provides: INotificationSender<br/>requires: notification HTTPS API"]
+    FILEA["<b>«component» FileStorageAdapter</b><br/>provides: IFileStore<br/>requires: S3 API"]
+  end
+  DB[("Database")]:::ext
+  FILES[("Document Storage")]:::ext
+  WEB -.->|"REST API (HTTPS, JSON)"| ROUTES
+  PAYX -.->|"Payment webhook (HTTPS)"| ROUTES
+  ROUTES -->|"IAuthService"| AUTH
+  ROUTES -->|"IOrderService"| ORD
+  ROUTES -->|"IPaymentService"| PAYS
+  ROUTES -->|"IShopService"| SHOP
+  ROUTES -->|"IMetricsService"| MET
+  PAYS -->|"IQueueService"| QUE
+  ORD -->|"INotificationService"| NOT
+  PAYS -->|"INotificationService"| NOT
+  ORD -->|"IFileStore"| FILEA
+  PAYS -->|"IPaymentGateway"| PAYA
+  NOT -->|"INotificationSender"| NOTA
+  AUTH -->|"IUserRepository"| REPOS
+  ORD -->|"IOrderRepository, IShopRepository"| REPOS
+  PAYS -->|"IPaymentRepository, IOrderRepository"| REPOS
+  QUE -->|"IOrderRepository"| REPOS
+  SHOP -->|"IShopRepository, IUserRepository"| REPOS
+  MET -->|"IOrderRepository, IShopRepository"| REPOS
+  NOT -->|"INotificationRepository, IUserRepository"| REPOS
+  REPOS -->|"SQL over TLS"| DB
+  FILEA -->|"HTTPS, S3 API"| FILES
+  PAYA -->|"HTTPS, JSON"| PAYX
+  NOTA -->|"HTTPS, JSON"| NOTX
+  subgraph KEY["Key"]
+    direction LR
+    k1["«component»<br/>provides / requires lists"] -->|"IName = requires this interface, provided by the target"| k2["«component»"]
+    k3["Outside the API container"]:::ext
+  end
+  classDef ext fill:#e9ecef,stroke:#6c757d
