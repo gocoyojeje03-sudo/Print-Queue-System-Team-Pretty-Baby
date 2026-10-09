@@ -1,0 +1,56 @@
+flowchart TB
+  st((Start)):::start
+  subgraph S["Swimlane: Student"]
+    s1["Sign in"]
+    s2["Upload document and set print options"]
+    s3{"Express priority wanted?"}
+    s3a["Tick express priority"]
+    s4["Submit print request"]
+    s5{"Pay now?"}
+    s6["Pay for order"]
+    s8["Receive notification and pick up prints"]
+  end
+  subgraph Y["Swimlane: System"]
+    y1["Validate and store request, set PENDING"]
+    y1d{"Request valid?"}
+    y2["Show error and ask student to fix it"]
+    y1f["Forward request to shop staff"]
+    y3["Set REJECTED and notify student"]
+    y4["Set APPROVED and notify student to pay"]
+    y8["Set CANCELLED"]
+    y5["Send payment to Payment Gateway"]
+    y5d{"Payment confirmed?"}
+    y6["Save payment reference, issue queue number, set QUEUED, notify student"]
+    y7["Set COMPLETED and notify student"]
+  end
+  subgraph O["Swimlane: Print Shop Staff"]
+    o1["Review request"]
+    o1d{"Approve request?"}
+    o2["Print documents in queue order, express first"]
+    o3["Mark order completed"]
+  end
+  e1((End: picked up)):::fin
+  e2((End: rejected)):::fin
+  e3((End: cancelled)):::fin
+  st --> s1 --> s2 --> s3
+  s3 -->|"[express wanted]"| s3a --> s4
+  s3 -->|"[no express]"| s4
+  s4 --> y1 --> y1d
+  y1d -->|"[invalid]"| y2 --> s2
+  y1d -->|"[valid]"| y1f --> o1 --> o1d
+  o1d -->|"[rejected]"| y3 --> e2
+  o1d -->|"[approved]"| y4 --> s5
+  s5 -->|"[student cancels]"| y8 --> e3
+  s5 -->|"[student pays]"| s6 --> y5 --> y5d
+  y5d -->|"[payment failed]"| s5
+  y5d -->|"[payment paid]"| y6 --> o2 --> o3 --> y7 --> s8 --> e1
+  subgraph KEY["Key"]
+    direction LR
+    ks((Start)):::start
+    ka["Action"]
+    kd{"Decision [guard]"}
+    ke((End)):::fin
+    ks --> ka --> kd --> ke
+  end
+  classDef start fill:#000,color:#fff,stroke:#000
+  classDef fin fill:#fff,stroke:#000,stroke-width:4px
