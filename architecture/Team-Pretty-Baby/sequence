@@ -1,0 +1,64 @@
+sequenceDiagram
+  autonumber
+  actor Student
+  participant Page as Payment Page (Web App)
+  participant Api as API
+  participant Db as Database (PostgreSQL)
+  participant Pay as Payment Gateway
+  participant Notif as Notification Service
+  Note over Student,Notif: Key - solid arrow = synchronous call, open arrowhead = asynchronous message, dashed arrow = reply, alt = branch, opt = optional step
+
+  %% Student starts payment for an APPROVED request
+  Student->>Page: Tap "Pay now" on approved request
+  activate Page
+  Page->>Api: POST /api/orders/{id}/payments
+  activate Api
+  Api->>Db: SELECT order WHERE id and student_id
+  activate Db
+  Db-->>Api: order (status APPROVED)
+  deactivate Db
+
+  alt status is APPROVED (valid)
+    Api->>Db: INSERT payment (PENDING)
+    activate Db
+    Db-->>Api: payment id
+    deactivate Db
+    Api->>Pay: Create payment for amount and payment id
+    activate Pay
+    Pay-->>Api: Checkout link
+    deactivate Pay
+    Api-->>Page: 200 OK with checkout link
+    Page-->>Student: Redirect to gateway checkout
+
+    %% Student pays on the gateway's own page
+    Student->>Pay: Enter payment details and confirm
+    activate Pay
+    Pay-->>Student: Show payment result page
+    deactivate Pay
+
+    %% Gateway reports the result later
+    Pay-)Api: POST /api/webhooks/payment with PAID or FAILED
+    alt payment PAID
+      Api->>Db: UPDATE payment PAID, order QUEUED with queue number, INSERT notification
+      activate Db
+      Db-->>Api: committed
+      deactivate Db
+      Note over Api,Db: Status and queue number are committed BEFORE any notification is attempted
+      Api-)Notif: Send "Payment confirmed, your queue number is A-014" (async)
+      Notif-)Student: Notification delivered
+      Api-->>Pay: 200 OK
+    else payment FAILED
+      Api->>Db: UPDATE payment FAILED (order stays APPROVED)
+      activate Db
+      Db-->>Api: updated
+      deactivate Db
+      Api-)Notif: Send "Payment failed, please try again" (async)
+      Notif-)Student: Notification delivered
+      Api-->>Pay: 200 OK
+    end
+  else status is not APPROVED (invalid)
+    Api-->>Page: 409 Conflict (order not awaiting payment)
+    Page-->>Student: Show "This request cannot be paid now"
+  end
+  deactivate Api
+  deactivate Page
