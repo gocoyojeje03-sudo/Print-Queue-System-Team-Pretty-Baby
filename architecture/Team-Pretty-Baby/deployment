@@ -1,0 +1,47 @@
+flowchart LR
+  subgraph DEV1["«device» Student phone or laptop"]
+    BR1["«execution environment»<br/>Web browser"]
+    PH1["«execution environment»<br/>Phone SMS or push client"]
+  end
+  subgraph DEV2["«device» Shop staff computer or phone"]
+    BR2["«execution environment»<br/>Web browser"]
+  end
+  subgraph APP["«node» Application host (provider not chosen)"]
+    subgraph RT["«execution environment» Node.js runtime"]
+      A1["«artifact»<br/>web-app build"]
+      A2["«artifact»<br/>api build"]
+    end
+  end
+  subgraph DBN["«node» Database host (provider not chosen)"]
+    subgraph PG["«execution environment» PostgreSQL server"]
+      A3["«artifact»<br/>schema and migrations"]
+    end
+  end
+  subgraph STN["«node» Object storage service (provider not chosen)"]
+    subgraph BK["«execution environment» Storage bucket"]
+      A4["«artifact»<br/>uploaded documents"]
+    end
+  end
+  subgraph EXP["«external node» Payment gateway provider"]
+    PAYAPI["«execution environment»<br/>Payment HTTP API"]
+  end
+  subgraph EXN["«external node» Notification provider"]
+    NOTAPI["«execution environment»<br/>SMS or push HTTP API"]
+  end
+  BR1 -->|"HTTPS"| A1
+  BR1 -->|"HTTPS, JSON"| A2
+  BR2 -->|"HTTPS"| A1
+  BR2 -->|"HTTPS, JSON"| A2
+  A2 -->|"SQL over TLS"| A3
+  A2 -->|"HTTPS, S3 API"| A4
+  A2 -->|"HTTPS, JSON"| PAYAPI
+  PAYAPI -->|"HTTPS webhook"| A2
+  A2 -->|"HTTPS, JSON"| NOTAPI
+  NOTAPI -->|"SMS or push over mobile network"| PH1
+  BR1 -->|"HTTPS redirect to checkout"| PAYAPI
+  subgraph KEY["Key"]
+    direction LR
+    k1["«node» or «device» = hardware or hosting unit<br/>«execution environment» = software platform<br/>«artifact» = deployed file or build"]
+    k2["arrow = communication path with protocol"]
+    k1 --> k2
+  end
