@@ -1,0 +1,49 @@
+flowchart LR
+  student[["Student"]]:::actor
+  staff[["Print Shop Staff"]]:::actor
+  admin[["Administrator"]]:::actor
+  pay[["Payment Gateway"]]:::ext
+  notif[["Notification Service"]]:::ext
+  subgraph SYS["Print Queue System (system boundary)"]
+    UC01(["UC01 Sign in"])
+    UC02(["UC02 Submit print request"])
+    UC03(["UC03 Request express priority"])
+    UC04(["UC04 Review print request"])
+    UC05(["UC05 Pay for order"])
+    UC06(["UC06 Track order status"])
+    UC07(["UC07 Update order status"])
+    UC08(["UC08 Send notification"])
+    UC09(["UC09 Manage shop settings"])
+    UC10(["UC10 Onboard print shop"])
+    UC11(["UC11 View usage metrics"])
+    UC12(["UC12 Cancel print request"])
+  end
+  student --- UC01
+  student --- UC02
+  student --- UC05
+  student --- UC06
+  student --- UC12
+  staff --- UC01
+  staff --- UC04
+  staff --- UC07
+  staff --- UC09
+  admin --- UC01
+  admin --- UC10
+  admin --- UC11
+  UC05 --- pay
+  UC08 --- notif
+  UC03 -.->|"extend"| UC02
+  UC04 -.->|"include"| UC08
+  UC05 -.->|"include"| UC08
+  UC07 -.->|"include"| UC08
+  subgraph KEY["Key"]
+    direction LR
+    ka[["Human actor"]]:::actor
+    ke[["External system actor"]]:::ext
+    ku(["Use case = verb + object"])
+    ka --- ku
+    ke --- ku
+    ku -.->|"include or extend"| ku
+  end
+  classDef actor fill:#fff3cd,stroke:#8a6d1d,color:#000
+  classDef ext fill:#e9ecef,stroke:#6c757d,color:#000
